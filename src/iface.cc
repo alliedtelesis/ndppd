@@ -518,6 +518,8 @@ void iface::cleanup()
 
 int iface::poll_all()
 {
+    int no_polls = 0;
+
     if (_map_dirty) {
         cleanup();
         fixup_pollfds();
@@ -556,6 +558,7 @@ int iface::poll_all()
         bool is_pfd = i++ % 2;
 
         if (!(f_it->revents & POLLIN)) {
+            no_polls++;
             continue;
         }
 
@@ -594,6 +597,11 @@ int iface::poll_all()
                 }
             }
         }
+    }
+
+    if (no_polls == _pollfds.size()) {
+        /* 50 milliseconds to match poll timeout. */
+        usleep(50000);
     }
 
     return 0;
